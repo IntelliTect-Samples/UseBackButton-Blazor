@@ -1,0 +1,142 @@
+@page "/ExamplePage"
+
+<UseBackButton OnBack="OnBack" @bind-OnClickHandler="BackButtonClickHandler" />
+
+@{
+    RenderFragment firstComponent =
+    @<div>
+        <h5>First Step</h5>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        <button type="button" style="float:right" @onclick="()=>ActiveComponent=Component.Second">Next &rarr;</button>
+    </div>;
+
+    RenderFragment secondComponent =
+    @<div>
+        <h5>Second Step</h5>
+        <p>Consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        <p>Click back or use browser back button.</p>
+        <button type="button" @onclick="BackButtonClickHandler">&larr; Back</button>
+    </div>;
+}
+
+<div class="container">
+    <div class="card">
+        <h3>UseBackButton Demo</h3>
+        <hr />
+        @if (ActiveComponent == Component.First)
+        {
+            <div class="slide-in-left">
+                @firstComponent
+            </div>
+        }
+        @if (ActiveComponent == Component.Second)
+        {
+            <div class="slide-in-right">
+                @secondComponent
+            </div>
+        }
+    </div>
+</div>
+
+
+@code {
+
+    protected Func<Task> BackButtonClickHandler { get; set; } = null!;
+
+    private bool OnBack()
+    {
+        if (PreviousComponent == Component.None)
+        {
+            return false;
+        }
+
+        GoToPreviousComponent();
+        return true;
+    }
+
+    private Component _ActiveComponent = Component.First;
+
+    private Component ActiveComponent
+    {
+        get { return _ActiveComponent; }
+        set
+        {
+            PreviousComponent = _ActiveComponent;
+            _ActiveComponent = value;
+            if (ActiveComponent == Component.First)
+            {
+                PreviousComponent = Component.None;
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    protected Component PreviousComponent { get; set; } = Component.None;
+
+    public void GoToPreviousComponent() => ActiveComponent = PreviousComponent;
+
+    protected enum Component
+    {
+        None,
+        First,
+        Second
+    }
+
+}
+
+<style>
+    /* Dont put styles in your components. See style scopes: https://learn.microsoft.com/en-us/aspnet/core/blazor/components/css-isolation?view=aspnetcore-7.0 */
+    .card {
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+        width: 400px;
+        margin: 20px auto;
+        overflow: hidden;
+    }
+
+    .container {
+        display: flex;
+        justify-content: center;
+        padding-top: 20px;
+    }
+
+    @@keyframes slideInFromRight {
+        0% {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .slide-in-right {
+        animation: slideInFromRight 0.3s ease-out;
+    }
+
+    @@keyframes slideInFromLeft {
+        0% {
+            opacity: 0;
+            transform: translateX(-100%);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .slide-in-left {
+        animation: slideInFromLeft 0.3s ease-out;
+    }
+
+    body {
+        font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+</style>

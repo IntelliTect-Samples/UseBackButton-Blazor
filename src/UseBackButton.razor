@@ -1,0 +1,84 @@
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+@code {
+
+    /// <summary>
+    /// A function that is called when the user uses browser back button navigation. Returns true if the navigation is handled by the component.
+    /// Returns false if the browser should handle the navigation.
+    /// </summary>
+    [Parameter]
+    [EditorRequired]
+    public required Func<bool> OnBack { get; set; }
+
+    /// <summary>
+    /// The handler to be called when the user clicks a components back button (not the browsers).
+    /// </summary>
+    [Parameter]
+    public Func<Task>? OnClickHandler { get; set; }
+
+    [Parameter]
+    public EventCallback<Func<Task>> OnClickHandlerChanged { get; set; }
+
+    [JSInvokable]
+    public bool HandlePopState()
+    {
+        return OnBack();
+    }
+
+    public async Task HandleOnClick()
+    {
+        var module = await _InputModuleTask;
+        // call the js function
+        await module.InvokeVoidAsync("handleUiBackButton");
+    }
+
+    private static bool _Mounted;
+
+    private const string JsFileLocation =  // update the path "./_content/ReplaceThisPath/UseBackButton.razor.js";
+
+    private Task<IJSObjectReference> _InputModuleTask = null!;
+    protected override void OnInitialized()
+    {
+        if (_Mounted)
+        {
+            throw new InvalidOperationException("You should not have more than one UseBackButton on a page.");
+        }
+
+        _Mounted = true;
+
+        _InputModuleTask = JSRuntime
+            .InvokeAsync<IJSObjectReference>(
+                "import",
+                JsFileLocation
+            )
+            .AsTask();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // set the handler for the parent component to use
+            OnClickHandlerChanged.InvokeAsync(HandleOnClick);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var module = await _InputModuleTask;
+            await module.InvokeVoidAsync("addPopStateListener", DotNetObjectReference.Create(this));
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _Mounted = false;
+
+        var module = await _InputModuleTask;
+        await module.InvokeVoidAsync("removePopStateListener");
+        await module.DisposeAsync();
+    }
+}
