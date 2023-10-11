@@ -1,5 +1,5 @@
 # UseBackButton
-UseBackButton gives you full control over how the "Back" button behaves within your single page activities of your Blazor app. Use it to make a UI back button, the browser back button, and native OS “back” gestures, all result in the same behavior.
+UseBackButton gives you full control over how the "Back" button behaves within your single page activities of your Blazor app. Use it to make a UI back button, the browser back button, and native OS “back” gestures (Blazor Hybrid app), all result in the same behavior.
 
 ![DemoGif](Assets/UseBackButtonDemo.gif)
 
