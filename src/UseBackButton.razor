@@ -20,6 +20,8 @@
     [Parameter]
     public EventCallback<Func<Task>> OnClickHandlerChanged { get; set; }
 
+    private DotNetObjectReference<UseBackButton>? DotNetObject { get; set; }
+
     [JSInvokable]
     public bool HandlePopState()
     {
@@ -69,7 +71,8 @@
         if (firstRender)
         {
             var module = await _InputModuleTask;
-            await module.InvokeVoidAsync("addPopStateListener", DotNetObjectReference.Create(this));
+            DotNetObject = DotNetObjectReference.Create(this);
+            await module.InvokeVoidAsync("addPopStateListener", DotNetObject);
         }
     }
 
@@ -80,5 +83,7 @@
         var module = await _InputModuleTask;
         await module.InvokeVoidAsync("removePopStateListener");
         await module.DisposeAsync();
+
+        DotNetObject?.Dispose();
     }
 }
